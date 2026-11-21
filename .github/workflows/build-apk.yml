@@ -1,11 +1,13 @@
-name: Build Thunderbird APK
+name: Build and Release Thunderbird APK
 
 on:
-  workflow_dispatch: # This allows you to manually click to trigger the build
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Must have write permission to create a Release
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,8 +24,13 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew :app-thunderbird:assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: thunderbird-debug-apk
-          path: app-thunderbird/build/outputs/apk/debug/*.apk
+          tag_name: "tb-debug-${{ github.run_id }}" # Use run ID as tag to avoid conflicts
+          name: "Thunderbird Debug APK (${{ github.run_number }})"
+          files: "**/*.apk" # Match all APKs (as long as the build succeeds, it will find it)
+          draft: false
+          prerelease: true # Mark as pre-release (optional)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Automatically provided by GitHub, no need to configure manually

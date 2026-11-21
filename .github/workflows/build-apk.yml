@@ -1,0 +1,29 @@
+name: Build Thunderbird APK
+
+on:
+  workflow_dispatch: # This allows you to manually click to trigger the build
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew :app-thunderbird:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: thunderbird-debug-apk
+          path: app-thunderbird/build/outputs/apk/debug/*.apk
